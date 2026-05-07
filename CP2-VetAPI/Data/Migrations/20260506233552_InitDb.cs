@@ -5,39 +5,40 @@
 namespace CP2_VetApi.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Pet",
+                name: "TB_PET",
                 columns: table => new
                 {
                     id_pet = table.Column<int>(type: "NUMBER(10)", nullable: false)
                         .Annotation("Oracle:Identity", "START WITH 1 INCREMENT BY 1"),
-                    nm_pet = table.Column<string>(type: "NVARCHAR2(100)", maxLength: 100, nullable: false),
-                    raca_pet = table.Column<string>(type: "NVARCHAR2(100)", maxLength: 100, nullable: false),
-                    idade_pet = table.Column<int>(type: "NUMBER(10)", nullable: false)
+                    nm_nome = table.Column<string>(type: "NVARCHAR2(100)", maxLength: 100, nullable: false),
+                    rc_raca = table.Column<string>(type: "NVARCHAR2(100)", maxLength: 100, nullable: false),
+                    es_especie = table.Column<string>(type: "NVARCHAR2(100)", maxLength: 100, nullable: false),
+                    i_idade = table.Column<int>(type: "NUMBER(10)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Pet", x => x.id_pet);
+                    table.PrimaryKey("PK_TB_PET", x => x.id_pet);
                 });
 
             migrationBuilder.CreateTable(
-                name: "tb_tutor",
+                name: "TB_TUTOR",
                 columns: table => new
                 {
                     id_tutor = table.Column<int>(type: "NUMBER(10)", nullable: false)
                         .Annotation("Oracle:Identity", "START WITH 1 INCREMENT BY 1"),
-                    nm_tutor = table.Column<string>(type: "NVARCHAR2(100)", maxLength: 100, nullable: false),
-                    em_tutor = table.Column<string>(type: "NVARCHAR2(100)", maxLength: 100, nullable: false),
-                    tl_tutor = table.Column<string>(type: "NVARCHAR2(11)", maxLength: 11, nullable: false)
+                    nm_nome = table.Column<string>(type: "NVARCHAR2(100)", maxLength: 100, nullable: false),
+                    em_email = table.Column<string>(type: "NVARCHAR2(100)", maxLength: 100, nullable: false),
+                    tl_telefone = table.Column<string>(type: "NVARCHAR2(11)", maxLength: 11, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_tb_tutor", x => x.id_tutor);
+                    table.PrimaryKey("PK_TB_TUTOR", x => x.id_tutor);
                 });
         }
 
@@ -45,10 +46,10 @@ namespace CP2_VetApi.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Pet");
+                name: "TB_PET");
 
             migrationBuilder.DropTable(
-                name: "tb_tutor");
+                name: "TB_TUTOR");
         }
     }
 }

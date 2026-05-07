@@ -1,6 +1,7 @@
 ﻿using CP2_VetApi.Data;
 using CP2_VetApi.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace CP2_VetApi.Controllers
@@ -22,69 +23,70 @@ namespace CP2_VetApi.Controllers
             Summary = "Listar todos os Pet",
             Description = "Metodos resposável por listar todos os Pets da base de dados"
         )]
-        public IActionResult ListarTodos()
+        public async Task<IActionResult> ListarTodos()
         {
-            try
-            {
-                var resultado = _context.Pet.ToList();
+            var resultado = await _context.Pet.ToListAsync();
 
-                if (!resultado.Any())
-                {
-                    return NoContent();
-                }
-
-                return Ok(resultado);
-            }
-            catch (Exception ex)
+            if (resultado == null)
             {
-                return BadRequest(ex.Message);
+                return NoContent();
             }
+            return Ok(resultado);
+
         }
 
         [HttpGet("{id}")]
         [SwaggerOperation(
             Summary = "Listar um Pet",
-            Description = "Metodos resposável por listar/buscar 1 Pet da base de dados"
+            Description = "Metodos resposável por listar/buscar um Pet da base de dados"
         )]
-        public IActionResult ListarUm(int id)
+        [SwaggerResponse(statusCode: 200, description: "Pet atualizado com sucesso", type: typeof(PetEntity))]
+        [SwaggerResponse(statusCode: 404, description: "Pet não encontrado")]
+        [SwaggerResponse(statusCode: 400, description: "Requisição inválida")]
+        public async Task<IActionResult> ListarUm(int id)
         {
-            try
-            {
-                var resultado = _context.Pet.FirstOrDefault(x => x.Id == id);
 
-                if (resultado is null)
-                {
-                    return NotFound("Pet não encontrado.");
-                }
-                return Ok(resultado);
-            }
-            catch (Exception ex)
+            var resultado = await _context.Pet.FindAsync(id);
+
+            if (resultado == null)
             {
-                return BadRequest(ex.Message);
+                return NotFound("Pet não encontrado.");
             }
 
+            return Ok(resultado);
         }
 
-        //Tem que montar mais 1 metodo Get
+
+        [HttpGet("buscar/{especie}")]
+        [SwaggerOperation(
+            Summary = "Listar todos os Pet por Espécie",
+            Description = "Metodos resposável por listar todos os Pets de uma determinada espécie da base de dados"
+        )]
+        public async Task<IActionResult> ListarTodosPorEspecie(string especie)
+        {
+            var resultado = await _context.Pet.Where(e => e.Especie == especie).ToListAsync();
+
+            if (!resultado.Any())
+            {
+                return NotFound("Não existe nenhum animal da espécie informada");
+            }
+
+            return Ok(resultado);
+
+        }
 
         [HttpPost]
         [SwaggerOperation(
             Summary = "Adicionar Pet",
             Description = "Metodos resposável por Adicionar Pet na base de dados"
         )]
-        public IActionResult CriarPet(PetEntity model)
+        public async Task<IActionResult> CriarPet(PetEntity entity)
         {
-            try
-            {
-                _context.Pet.Add(model);
-                _context.SaveChanges();
+            _context.Pet.Add(entity);
+            await _context.SaveChangesAsync();
 
-                return Ok(model);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Ok(entity);
+
         }
 
         [HttpPut("{id}")]
@@ -92,29 +94,26 @@ namespace CP2_VetApi.Controllers
             Summary = "Editar Pet",
             Description = "Metodos resposável por Editar Pet na base de dados"
         )]
-        public IActionResult AtualizarPet(int id, PetEntity model)
+        public async Task<IActionResult> AtualizarPet(int id, PetEntity petEntity)
         {
-            try
+            var petExists = await _context.Pet.FindAsync(id);
+
+            if (petExists is not null)
             {
-                var resultado = _context.Pet.FirstOrDefault(x => x.Id == id);
+                petExists.Nome = petEntity.Nome;
+                petExists.Raca = petEntity.Raca;
+                petExists.Especie = petEntity.Especie;
+                petExists.Idade = petEntity.Idade;
 
-                if (resultado is null)
-                {
-                    return NotFound("Pet não encontrado.");
-                }
-                resultado.Nome = model.Nome;
-                resultado.Idade = model.Idade;
-                resultado.Raca = model.Raca;
 
-                _context.Pet.Update(resultado);
-                _context.SaveChanges();
+                _context.Pet.Update(petExists);
+                await _context.SaveChangesAsync();
 
-                return Ok(resultado);
+                return Ok(petEntity);
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            return NotFound();
+
         }
 
         [HttpDelete("{id}")]
@@ -122,23 +121,19 @@ namespace CP2_VetApi.Controllers
             Summary = "Deletar Pet",
             Description = "Metodos resposável por Deletar Pet da base de dados"
         )]
-        public IActionResult Remover(int id)
+        public async Task<IActionResult> Remover(int id)
         {
-            try
+            var petEntity = await _context.Pet.FindAsync(id);
+
+            if (petEntity is null)
             {
-                var resultado = _context.Pet.FirstOrDefault(x => x.Id == id);
-                if (resultado is null)
-                {
-                    return NotFound("Pet não encontrado.");
-                }
-                _context.Pet.Remove(resultado);
-                _context.SaveChanges();
-                return Ok(resultado);
+                return NotFound();
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            _context.Pet.Remove(petEntity);
+            await _context.SaveChangesAsync();
+
+            return Ok(petEntity);
 
         }
     }

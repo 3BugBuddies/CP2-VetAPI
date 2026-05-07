@@ -11,8 +11,8 @@ using Oracle.EntityFrameworkCore.Metadata;
 namespace CP2_VetApi.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20260506040516_Initial")]
-    partial class Initial
+    [Migration("20260506233552_InitDb")]
+    partial class InitDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,25 +33,31 @@ namespace CP2_VetApi.Migrations
 
                     OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Especie")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("NVARCHAR2(100)")
+                        .HasColumnName("es_especie");
+
                     b.Property<int>("Idade")
                         .HasColumnType("NUMBER(10)")
-                        .HasColumnName("idade_pet");
+                        .HasColumnName("i_idade");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("NVARCHAR2(100)")
-                        .HasColumnName("nm_pet");
+                        .HasColumnName("nm_nome");
 
                     b.Property<string>("Raca")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("NVARCHAR2(100)")
-                        .HasColumnName("raca_pet");
+                        .HasColumnName("rc_raca");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Pet");
+                    b.ToTable("TB_PET");
                 });
 
             modelBuilder.Entity("CP2_VetApi.Models.TutorEntity", b =>
@@ -67,23 +73,23 @@ namespace CP2_VetApi.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("NVARCHAR2(100)")
-                        .HasColumnName("em_tutor");
+                        .HasColumnName("em_email");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("NVARCHAR2(100)")
-                        .HasColumnName("nm_tutor");
+                        .HasColumnName("nm_nome");
 
                     b.Property<string>("Telefone")
                         .IsRequired()
                         .HasMaxLength(11)
                         .HasColumnType("NVARCHAR2(11)")
-                        .HasColumnName("tl_tutor");
+                        .HasColumnName("tl_telefone");
 
                     b.HasKey("Id");
 
-                    b.ToTable("tb_tutor");
+                    b.ToTable("TB_TUTOR");
                 });
 #pragma warning restore 612, 618
         }

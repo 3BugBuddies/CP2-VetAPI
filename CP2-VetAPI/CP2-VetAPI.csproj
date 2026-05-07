@@ -4,7 +4,10 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>CP2_VetApi</RootNamespace>
+	  <!--Habilitando OpenDocument-->
+	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
+	  <NoWarn>$(NoWarn);1591</NoWarn>
+	  <RootNamespace>CP2_VetApi</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

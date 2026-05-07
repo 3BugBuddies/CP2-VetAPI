@@ -1,6 +1,7 @@
-﻿using CP2_VetApi.Data;
+using CP2_VetApi.Data;
 using CP2_VetApi.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace CP2_VetApi.Controllers
@@ -19,72 +20,70 @@ namespace CP2_VetApi.Controllers
 
         [HttpGet]
         [SwaggerOperation(
-            Summary = "Listar todos os Tutors",
-            Description = "Metodos resposável por listar todos os Tutores da base de dados"
+            Summary = "Listar todos os Tutores",
+            Description = "Metodo resposável por listar todos os Tutores da base de dados"
         )]
-        public IActionResult Get()
+        public async Task<IActionResult> ListarTodos()
         {
-            try
-            {
-                var resultado = _context.Tutor.ToList();
-
-                if (!resultado.Any())
-                {
-                    return NoContent();
-                }
-
-                return Ok(resultado);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var resultado = await _context.Tutor.ToListAsync();
+            return Ok(resultado);
         }
 
         [HttpGet("{id}")]
         [SwaggerOperation(
             Summary = "Listar um Tutor",
-            Description = "Metodos resposável por listar/buscar 1 Tutor da base de dados"
+            Description = "Metodo resposável por listar/buscar um Tutor da base de dados"
         )]
-        public IActionResult ListarUm(int id)
+        [SwaggerResponse(statusCode: 200, description: "Tutor encontrado com sucesso", type: typeof(TutorEntity))]
+        [SwaggerResponse(statusCode: 404, description: "Tutor não encontrado")]
+        [SwaggerResponse(statusCode: 400, description: "Requisição inválida")]
+        public async Task<IActionResult> ListarUm(int id)
         {
-            try
-            {
-                var resultado = _context.Tutor.FirstOrDefault(x => x.Id == id);
+            var resultado = await _context.Tutor.FindAsync(id);
 
-                if (resultado is null)
-                {
-                    return NotFound("Tutor não encontrado.");
-                }
-                return Ok(resultado);
-            }
-            catch (Exception ex)
+            if (resultado is null)
             {
-                return BadRequest(ex.Message);
+                return NotFound("Tutor não encontrado.");
             }
+
+            return Ok(resultado);
         }
 
-        //Tem que montar mais 1 metodo Get
+        [HttpGet("buscar/{telefone}")]
+        [SwaggerOperation(
+            Summary = "Lista tutor por telefone",
+            Description = "Metodo resposável por listar/buscar um Tutor pelo telefone"
+        )]
+        public async Task<IActionResult> ListarPorTelefone(string telefone)
+        {
+            var telefoneFormatado = telefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "");
 
+            var resultado = await _context.Tutor.Where(t => t.Telefone == telefoneFormatado).FirstOrDefaultAsync();
+
+            if (resultado == null)
+            {
+                return NotFound("Nenhum tutor possui o número informado");
+            }
+
+            return Ok(resultado);
+
+        }
 
         [HttpPost]
         [SwaggerOperation(
             Summary = "Adicionar Tutor",
-            Description = "Metodos resposável por Adicionar Tutor na base de dados"
+            Description = "Metodo resposável por Adicionar Tutor na base de dados"
         )]
-        public IActionResult Post(TutorEntity model)
+        public async Task<IActionResult> CriarTutor(TutorEntity tutorEntity)
         {
-            try
-            {
-                _context.Tutor.Add(model);
-                _context.SaveChanges();
+            string telefoneFormatado = tutorEntity.Telefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "");
 
-                return Ok(model);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            tutorEntity.Telefone = telefoneFormatado;
+
+            _context.Tutor.Add(tutorEntity);
+            await _context.SaveChangesAsync();
+
+            return Ok(tutorEntity);
         }
 
         [HttpPut("{id}")]
@@ -92,29 +91,23 @@ namespace CP2_VetApi.Controllers
             Summary = "Editar Tutor",
             Description = "Metodos resposável por Editar Tutor na base de dados"
         )]
-        public IActionResult Put(int id, TutorEntity model)
+        public async Task<IActionResult> AtualizarTutor(int id, TutorEntity tutorEntity)
         {
-            try
+            var tutorExists = await _context.Tutor.FindAsync(id);
+
+            if (tutorExists is not null)
             {
-                var resultado = _context.Tutor.FirstOrDefault(x => x.Id == id);
+                tutorExists.Nome = tutorEntity.Nome;
+                tutorExists.Email = tutorEntity.Email;
+                tutorExists.Telefone = tutorEntity.Telefone;
 
-                if (resultado is null)
-                {
-                    return NotFound("Tutor não encontrado.");
-                }
-                resultado.Nome = model.Nome;
-                resultado.Email = model.Email;
-                resultado.Telefone = model.Telefone;
+                _context.Tutor.Update(tutorExists);
+                await _context.SaveChangesAsync();
 
-                _context.Tutor.Update(resultado);
-                _context.SaveChanges();
-
-                return Ok(resultado);
+                return Ok(tutorEntity);
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            return NotFound();
         }
 
         [HttpDelete("{id}")]
@@ -122,24 +115,18 @@ namespace CP2_VetApi.Controllers
             Summary = "Deletar Tutor",
             Description = "Metodos resposável por Deletar Tutor da base de dados"
         )]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Remover(int id)
         {
-            try
+            var tutorEntity = await _context.Tutor.FindAsync(id);
+            if (tutorEntity is null)
             {
-                var resultado = _context.Tutor.FirstOrDefault(x => x.Id == id);
-                if (resultado is null)
-                {
-                    return NotFound("Tutor não encontrado.");
-                }
-                _context.Tutor.Remove(resultado);
-                _context.SaveChanges();
-                return Ok(resultado);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
+                return NotFound();
             }
 
+            _context.Tutor.Remove(tutorEntity);
+            await _context.SaveChangesAsync();
+
+            return Ok(tutorEntity);
         }
     }
 }
