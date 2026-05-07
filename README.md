@@ -47,6 +47,9 @@ Edite o arquivo `CP2-VetAPI/appsettings.Development.json` com suas credenciais O
 # Restaurar dependências
 dotnet restore
 
+# Instalar ferramenta dotnet-ef (caso não tenha)
+dotnet tool install --global dotnet-ef
+
 # Aplicar migrations (criar tabelas no banco)
 dotnet ef database update --project CP2-VetAPI
 
