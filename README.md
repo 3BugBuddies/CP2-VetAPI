@@ -22,6 +22,22 @@ O telefone do tutor é normalizado automaticamente na entrada (remove parêntese
 | Swashbuckle.AspNetCore | 6.6.2 | Geração do Swagger/OpenAPI |
 | Swashbuckle.AspNetCore.Annotations | 6.6.2 | Anotações descritivas nos endpoints |
 
+## Estrutura de Pastas
+
+```
+CP2-VetAPI/
+├── CP2-VetAPI.slnx
+├── README.md
+└── CP2-VetAPI/
+    ├── Controllers/       # Endpoints da API (Pet, Tutor)
+    ├── Data/
+    │   └── Migrations/    # Histórico de migrations do EF Core
+    ├── Entities/          # Modelos de domínio
+    ├── Properties/
+    ├── Program.cs
+    └── appsettings.json
+```
+
 ## Como Rodar o Projeto
 
 ### Pré-requisitos
