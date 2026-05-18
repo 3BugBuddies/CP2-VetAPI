@@ -1,7 +1,6 @@
-using CP2_VetApi.Data;
 using CP2_VetApi.Models;
+using CP2_VetApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace CP2_VetApi.Controllers
@@ -10,12 +9,11 @@ namespace CP2_VetApi.Controllers
     [ApiController]
     public class TutorController : ControllerBase
     {
+        private readonly TutorService _tutorService;
 
-        private readonly ApplicationContext _context;
-
-        public TutorController(ApplicationContext context)
+        public TutorController(TutorService tutorService)
         {
-            _context = context;
+            _tutorService = tutorService;
         }
 
         [HttpGet]
@@ -25,7 +23,7 @@ namespace CP2_VetApi.Controllers
         )]
         public async Task<IActionResult> ListarTodos()
         {
-            var resultado = await _context.Tutor.ToListAsync();
+            var resultado = await _tutorService.ListarTodosAsync();
             return Ok(resultado);
         }
 
@@ -39,7 +37,7 @@ namespace CP2_VetApi.Controllers
         [SwaggerResponse(statusCode: 400, description: "Requisição inválida")]
         public async Task<IActionResult> ListarUm(int id)
         {
-            var resultado = await _context.Tutor.FindAsync(id);
+            var resultado = await _tutorService.ListarPorIdAsync(id);
 
             if (resultado is null)
             {
@@ -56,9 +54,7 @@ namespace CP2_VetApi.Controllers
         )]
         public async Task<IActionResult> ListarPorTelefone(string telefone)
         {
-            var telefoneFormatado = telefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "");
-
-            var resultado = await _context.Tutor.Where(t => t.Telefone == telefoneFormatado).FirstOrDefaultAsync();
+            var resultado = await _tutorService.ListarPorTelefoneAsync(telefone);
 
             if (resultado == null)
             {
@@ -66,7 +62,6 @@ namespace CP2_VetApi.Controllers
             }
 
             return Ok(resultado);
-
         }
 
         [HttpPost]
@@ -76,14 +71,8 @@ namespace CP2_VetApi.Controllers
         )]
         public async Task<IActionResult> CriarTutor(TutorEntity tutorEntity)
         {
-            string telefoneFormatado = tutorEntity.Telefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "");
-
-            tutorEntity.Telefone = telefoneFormatado;
-
-            _context.Tutor.Add(tutorEntity);
-            await _context.SaveChangesAsync();
-
-            return Ok(tutorEntity);
+            var resultado = await _tutorService.CriarAsync(tutorEntity);
+            return Ok(resultado);
         }
 
         [HttpPut("{id}")]
@@ -93,21 +82,14 @@ namespace CP2_VetApi.Controllers
         )]
         public async Task<IActionResult> AtualizarTutor(int id, TutorEntity tutorEntity)
         {
-            var tutorExists = await _context.Tutor.FindAsync(id);
+            var resultado = await _tutorService.AtualizarAsync(id, tutorEntity);
 
-            if (tutorExists is not null)
+            if (resultado is null)
             {
-                tutorExists.Nome = tutorEntity.Nome;
-                tutorExists.Email = tutorEntity.Email;
-                tutorExists.Telefone = tutorEntity.Telefone;
-
-                _context.Tutor.Update(tutorExists);
-                await _context.SaveChangesAsync();
-
-                return Ok(tutorEntity);
+                return NotFound();
             }
 
-            return NotFound();
+            return Ok(resultado);
         }
 
         [HttpDelete("{id}")]
@@ -117,16 +99,14 @@ namespace CP2_VetApi.Controllers
         )]
         public async Task<IActionResult> Remover(int id)
         {
-            var tutorEntity = await _context.Tutor.FindAsync(id);
-            if (tutorEntity is null)
+            var resultado = await _tutorService.RemoverAsync(id);
+
+            if (resultado is null)
             {
                 return NotFound();
             }
 
-            _context.Tutor.Remove(tutorEntity);
-            await _context.SaveChangesAsync();
-
-            return Ok(tutorEntity);
+            return Ok(resultado);
         }
     }
 }

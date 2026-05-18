@@ -1,4 +1,5 @@
 using CP2_VetApi.Data;
+using CP2_VetApi.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -8,6 +9,15 @@ builder.Services.AddDbContext<ApplicationContext>(options => {
 
     options.UseOracle(builder.Configuration.GetConnectionString("Oracle"));
 });
+
+builder.Services.AddHttpClient<MotorServiceClient>(client => {
+    client.BaseAddress = new Uri(
+        builder.Configuration["MotorService:BaseUrl"] ?? "http://localhost:8080"
+    );
+});
+
+builder.Services.AddScoped<PetService>();
+builder.Services.AddScoped<TutorService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

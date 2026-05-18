@@ -1,7 +1,6 @@
-﻿using CP2_VetApi.Data;
 using CP2_VetApi.Models;
+using CP2_VetApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace CP2_VetApi.Controllers
@@ -10,12 +9,11 @@ namespace CP2_VetApi.Controllers
     [ApiController]
     public class PetController : ControllerBase
     {
+        private readonly PetService _petService;
 
-        private readonly ApplicationContext _context;
-
-        public PetController(ApplicationContext context)
+        public PetController(PetService petService)
         {
-            _context = context;
+            _petService = petService;
         }
 
         [HttpGet]
@@ -25,14 +23,13 @@ namespace CP2_VetApi.Controllers
         )]
         public async Task<IActionResult> ListarTodos()
         {
-            var resultado = await _context.Pet.ToListAsync();
+            var resultado = await _petService.ListarTodosAsync();
 
             if (resultado == null)
             {
                 return NoContent();
             }
             return Ok(resultado);
-
         }
 
         [HttpGet("{id}")]
@@ -45,8 +42,7 @@ namespace CP2_VetApi.Controllers
         [SwaggerResponse(statusCode: 400, description: "Requisição inválida")]
         public async Task<IActionResult> ListarUm(int id)
         {
-
-            var resultado = await _context.Pet.FindAsync(id);
+            var resultado = await _petService.ListarPorIdAsync(id);
 
             if (resultado == null)
             {
@@ -56,7 +52,6 @@ namespace CP2_VetApi.Controllers
             return Ok(resultado);
         }
 
-
         [HttpGet("buscar/{especie}")]
         [SwaggerOperation(
             Summary = "Listar todos os Pet por Espécie",
@@ -64,7 +59,7 @@ namespace CP2_VetApi.Controllers
         )]
         public async Task<IActionResult> ListarTodosPorEspecie(string especie)
         {
-            var resultado = await _context.Pet.Where(e => e.Especie == especie).ToListAsync();
+            var resultado = await _petService.ListarPorEspecieAsync(especie);
 
             if (!resultado.Any())
             {
@@ -72,7 +67,6 @@ namespace CP2_VetApi.Controllers
             }
 
             return Ok(resultado);
-
         }
 
         [HttpPost]
@@ -82,11 +76,8 @@ namespace CP2_VetApi.Controllers
         )]
         public async Task<IActionResult> CriarPet(PetEntity entity)
         {
-            _context.Pet.Add(entity);
-            await _context.SaveChangesAsync();
-
-            return Ok(entity);
-
+            var resultado = await _petService.CriarAsync(entity);
+            return Ok(resultado);
         }
 
         [HttpPut("{id}")]
@@ -96,24 +87,14 @@ namespace CP2_VetApi.Controllers
         )]
         public async Task<IActionResult> AtualizarPet(int id, PetEntity petEntity)
         {
-            var petExists = await _context.Pet.FindAsync(id);
+            var resultado = await _petService.AtualizarAsync(id, petEntity);
 
-            if (petExists is not null)
+            if (resultado is null)
             {
-                petExists.Nome = petEntity.Nome;
-                petExists.Raca = petEntity.Raca;
-                petExists.Especie = petEntity.Especie;
-                petExists.Idade = petEntity.Idade;
-
-
-                _context.Pet.Update(petExists);
-                await _context.SaveChangesAsync();
-
-                return Ok(petEntity);
+                return NotFound();
             }
 
-            return NotFound();
-
+            return Ok(resultado);
         }
 
         [HttpDelete("{id}")]
@@ -123,18 +104,14 @@ namespace CP2_VetApi.Controllers
         )]
         public async Task<IActionResult> Remover(int id)
         {
-            var petEntity = await _context.Pet.FindAsync(id);
+            var resultado = await _petService.RemoverAsync(id);
 
-            if (petEntity is null)
+            if (resultado is null)
             {
                 return NotFound();
             }
 
-            _context.Pet.Remove(petEntity);
-            await _context.SaveChangesAsync();
-
-            return Ok(petEntity);
-
+            return Ok(resultado);
         }
     }
 }
